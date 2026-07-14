@@ -26,8 +26,8 @@ on:
         default: "10"
         type: string
   schedule:
-    - cron: "0 7 17 7 *"
-    - cron: "0 9 17 7 *"
+    - cron: "0 7 18 7 *"
+    - cron: "0 9 18 7 *"
 
 permissions:
   contents: write
@@ -53,16 +53,17 @@ jobs:
           WINNERS: ${{ github.event.inputs.winners || '10' }}
           SCHEDULE_CRON: ${{ github.event.schedule || '' }}
           OUTPUT_DIR: results
+          OUTPUT_README: README.md
         run: node .github/scripts/draw-raffle.js
 
       - name: Commit results
         run: |
-          if git diff --quiet -- results; then
+          if git diff --quiet -- results README.md; then
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add results
+          git add results README.md
           git commit -m "chore: publish raffle result"
           git push origin HEAD:${GITHUB_REF_NAME}

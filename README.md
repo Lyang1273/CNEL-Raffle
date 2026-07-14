@@ -8,8 +8,16 @@
 
 ### 奖池一（贡献者）
 
+<!-- raffle:pool-1:start -->
+
 待公布
+
+<!-- raffle:pool-1:end -->
 
 ### 奖池二（普通用户）
 
+<!-- raffle:pool-2:start -->
+
 待公布
+
+<!-- raffle:pool-2:end -->
