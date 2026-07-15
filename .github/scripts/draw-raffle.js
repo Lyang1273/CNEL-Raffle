@@ -65,7 +65,6 @@ function renderResult({ source, winners, totalCandidates }) {
   return [
     '#### 抽奖结果',
     '',
-    `- 名单：中奖名单`,
     `- 数据来源：${source}`,
     `- 候选人数：${totalCandidates}`,
     `- 中奖人数：${winners.length}`,
