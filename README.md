@@ -6,18 +6,10 @@
 
 抽奖结果将直接发布在本 README 中。
 
-### 奖池一（贡献者）
+### 中奖名单
 
-<!-- raffle:pool-1:start -->
-
-待公布
-
-<!-- raffle:pool-1:end -->
-
-### 奖池二（普通用户）
-
-<!-- raffle:pool-2:start -->
+<!-- raffle:winners:start -->
 
 待公布
 
-<!-- raffle:pool-2:end -->
+<!-- raffle:winners:end -->
