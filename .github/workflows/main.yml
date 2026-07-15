@@ -1,0 +1,118 @@
+name: 随机抽取
+
+on:
+  workflow_dispatch:
+  # schedule:
+   #  - cron: '10 9 * * *'
+
+jobs:
+  RandomPick:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 随机抽取
+        id: pick
+        run: |
+          # 读取名单
+          if [ ! -f list.txt ]; then
+            echo "list.txt 不存在"
+            exit 1
+          fi
+          
+          mapfile -t raw_list < list.txt
+          
+          filtered_list=()
+          for name in "${raw_list[@]}"; do
+            if [[ -n "$name" && "$name" =~ [^[:space:]] ]]; then
+              filtered_list+=("$name")
+            fi
+          done
+          raw_list=("${filtered_list[@]}")
+          
+          total_count=${#raw_list[@]}
+          
+          if [ $total_count -eq 0 ]; then
+            echo "list.txt 为空"
+            exit 1
+          fi
+          
+          # 抽取人数
+          pick_count=10
+          if [ "$pick_count" -gt "$total_count" ]; then
+            pick_count=$total_count
+          fi
+          
+          # 从名单中不重复抽取
+          selected=$(printf "%s\n" "${raw_list[@]}" | shuf -n $pick_count)
+          
+          selected_str=$(echo "$selected" | while IFS= read -r line; do
+            echo -n "$line、"
+          done | sed 's/、$//')
+          
+          echo "selected<<EOF" >> $GITHUB_OUTPUT
+          echo "$selected" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          echo "selected_str=$selected_str" >> $GITHUB_OUTPUT
+          echo "total=$total_count" >> $GITHUB_OUTPUT
+          echo "pick_count=$pick_count" >> $GITHUB_OUTPUT
+          
+          echo "从 ${total_count} 个候选人中抽取了 ${pick_count} 个"
+
+      - name: 更新 README.md
+        run: |
+          # 获取时间
+          time=$(TZ='Asia/Shanghai' date +"%Y-%m-%d  %H:%M:%S.000")
+          
+          run_id="${{ github.run_id }}"
+          total="${{ steps.pick.outputs.total }}"
+          pick_count="${{ steps.pick.outputs.pick_count }}"
+          selected_str="${{ steps.pick.outputs.selected_str }}"
+          
+          cat > README.md << EOF
+          # 名单
+
+          ## 抽取结果
+
+          数据来源：list.txt
+          候选人数：${total}  
+          抽取人数：${pick_count}  
+          生成时间：${time}  
+
+          ## 本次抽中名单
+          ${selected_str}  
+          EOF
+          
+          echo "README.md 已更新"
+
+      - name: 提交并推送改动
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add README.md
+          
+          if git diff --staged --quiet; then
+            echo "README.md 无变化，跳过提交"
+          else
+            git commit -m "更新抽取结果 (run #${{ github.run_id }})"
+            git push
+            echo "已推送到仓库"
+          fi
+
+      - name: 显示抽取结果
+        run: |
+          echo "从 ${{ steps.pick.outputs.total }} 个候选人中抽取了 ${{ steps.pick.outputs.pick_count }} 人"
+          echo ""
+          echo "本次抽中名单："
+          echo "${{ steps.pick.outputs.selected_str }}"
+          echo ""
+          echo "结果已写入 README.md"
